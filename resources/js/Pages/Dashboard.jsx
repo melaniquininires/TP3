@@ -9,14 +9,14 @@ export default function Dashboard({ auth }) {
         >
             <Head title="Dashboard" />
 
-            <div className="py-12">
-                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                    <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                        <div className="p-6 text-gray-900">ACA UN PANEL CON TODAS LAS FUNCIONALIDADES</div>
-                    </div>
-                    
-                    
-                </div>
+            <div className="py-12 flex justify-center">
+  <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
+    <div className="bg-red-600 text-white font-bold text-center shadow-lg rounded-lg p-8">
+      <h2 className="text-2xl uppercase">¡Cuidado!</h2>
+      <p className="mt-2 text-lg">Esto es el TP3 de Framework e Interoperabilidad</p>
+    </div>
+  </div>
+
                 <CampaignCard/>
             </div>
         </AuthenticatedLayout>

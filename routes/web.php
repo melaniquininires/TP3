@@ -6,6 +6,7 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DonationController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\CurrencyController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -43,6 +44,7 @@ Route::get('/CreateCampaign', function () {
 })->middleware(['auth', 'verified'])->name('CreateCampaign');
 Route::get('/campaigns/search', [CampaignController::class, 'search']);
 Route::get('/categories', [CategoryController::class, 'index']);
+Route::get('/currency-rates', [CurrencyController::class, 'getRates']); //ruta para el servicio soap de exchange
 
 
 //CONTROLADORES
