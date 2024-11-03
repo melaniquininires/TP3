@@ -222,6 +222,7 @@ class CampaignController extends Controller
         $donations = Donation::where('campaign_id', $id)->get();
         return response()->json($donations);
     }
+
     public function search(Request $request)
     {
         $query = Campaign::with(['images', 'category']);
@@ -250,4 +251,25 @@ class CampaignController extends Controller
 
         return response()->json($campaigns);
     }
+
+    public function convertToPesos(Request $request)
+{
+    $amount = $request->input('amount'); // Monto en dólares desde el frontend
+
+    // Opciones de conexión al servicio SOAP
+    $options = [
+        'location' => 'http://localhost:8001/CurrencyConverterService.php', // URL del servicio SOAP
+        'uri' => 'http://localhost:8001/soap_service'
+    ];
+
+    try {
+        // Creo el cliente SOAP y llamo al método de conversión
+        $client = new \SoapClient(null, $options);
+        $pesos = $client->convertToPesos($amount); // Método del servicio SOAP
+
+        return response()->json(['pesos' => $pesos]);
+    } catch (\Exception $e) {
+        return response()->json(['error' => 'Error en la conversión: ' . $e->getMessage()], 500);
+    }
+}
 }

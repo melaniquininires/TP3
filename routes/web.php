@@ -44,7 +44,6 @@ Route::get('/CreateCampaign', function () {
 })->middleware(['auth', 'verified'])->name('CreateCampaign');
 Route::get('/campaigns/search', [CampaignController::class, 'search']);
 Route::get('/categories', [CategoryController::class, 'index']);
-Route::get('/currency-rates', [CurrencyController::class, 'getRates']); //ruta para el servicio soap de exchange
 
 
 //CONTROLADORES
@@ -84,6 +83,8 @@ Route::get('/campaigns/{id}/edit', function ($id) {
 
 Route::post('/donations', [DonationController::class, 'store']);
 Route::get('/campaigns/{id}/donations', [CampaignController::class, 'getDonations']);
+Route::post('/convert-to-pesos', [CampaignController::class, 'convertToPesos']);
+
 
 //prueba de ruta
 Route::get('/test', function () {

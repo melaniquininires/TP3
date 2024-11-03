@@ -1,4 +1,3 @@
-//esto es lo que veo cuando ingreso al detalle de las campañas (no de mis campañas)
 import React, { useState, useEffect } from 'react';
 import { usePage } from '@inertiajs/react';
 import Carousel from 'react-bootstrap/Carousel';
@@ -14,7 +13,7 @@ const CampaignDetails = () => {
   const [paymentUrl, setPaymentUrl] = useState(null);
   const [error, setError] = useState(null);
   const [donationAmount, setDonationAmount] = useState(''); // Estado para el monto de donación
-  const [donationAmountARS, setDonationAmountARS] = useState('');
+  const [donationAmountUSD, setDonationAmountUSD] = useState(''); // Monto en dólares
 
 
   const getYouTubeId = (url) => {
@@ -44,7 +43,6 @@ const CampaignDetails = () => {
   };
 
   const handleDonation = () => {
-    console.log('Iniciando donación...'); // Log inicial
 
     if (!donationAmount) {
         setError('Por favor, ingresa un monto.');
@@ -63,7 +61,6 @@ const CampaignDetails = () => {
     })
     .then(response => {
         console.log('Donación registrada:', response.data);
-        // 2. Generamos la preferencia de pago en Mercado Pago
         return axios.post(`/campaigns/${campaign.id}/payment-preference`, { amount: donationAmount });
     })
     .then(response => {
@@ -77,146 +74,142 @@ const CampaignDetails = () => {
     });
 };
 
- // Función para convertir USD a ARS
- const convertToARS = () => {
-  if (!donationAmount) {
-    setError('Por favor, ingresa un monto en USD.');
-    return;
+const handleConvertToPesos = () => {
+  if (!donationAmountUSD || isNaN(donationAmountUSD)) {
+      setError('Por favor, ingresa un monto válido en dólares.');
+      return;
   }
 
-  // Aca llamo al servicio SOAP 
-  axios.post('URL_DEL_SERVICIO_SOAP', {
-      amount: donationAmount
-  })
-  .then(response => {
-      // Suponiendo que la respuesta contiene el monto en ARS
-      setDonationAmountARS(response.data.amountInARS);
-      setError(null); // Limpiar cualquier error previo
-  })
-  .catch(error => {
-      console.error('Error al convertir a ARS:', error);
-      setError('No se pudo convertir el monto a pesos.');
-  });
+  axios.post('/convert-to-pesos', { amount: donationAmountUSD })
+      .then(response => {
+          setDonationAmount(response.data.pesos); // Asigna el resultado en pesos al campo de donación
+          setError(null);
+      })
+      .catch(error => {
+          console.error('Error en la conversión:', error);
+          setError('No se pudo convertir el monto a pesos.');
+      });
 };
 
 
-return (
-  <div>
-    {auth.user ? (
-      <AuthenticatedLayout user={auth.user}>
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            minHeight: '100vh',
-            padding: '20px',
-            backgroundColor: '#f5f5f5'
-          }}
-        >
-          <Card sx={{ maxWidth: 600, boxShadow: 3 }}>
-            <Carousel>
-              {Array.isArray(campaign.images) && campaign.images.length > 0 ? (
-                campaign.images.map((image, index) => (
-                  <Carousel.Item key={index}>
+  return (
+    <div>
+      {auth.user ? (
+        <AuthenticatedLayout user={auth.user}>
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              minHeight: '100vh',
+              padding: '20px',
+              backgroundColor: '#f5f5f5'
+            }}
+          >
+            <Card sx={{ maxWidth: 600, boxShadow: 3 }}>
+              <Carousel>
+                {Array.isArray(campaign.images) && campaign.images.length > 0 ? (
+                  campaign.images.map((image, index) => (
+                    <Carousel.Item key={index}>
+                      <img
+                        className="d-block w-100"
+                        src={`/storage/images/${image.path}`} 
+                        alt={`Imagen de la campaña ${index}`}
+                        style={{ height: '300px', objectFit: 'cover' }} 
+                      />
+                    </Carousel.Item>
+                  ))
+                ) : (
+                  <Carousel.Item>
                     <img
                       className="d-block w-100"
-                      src={`/storage/images/${image.path}`} // Asegúrate de que `path` sea correcto
-                      alt={`Imagen de la campaña ${index}`}
-                      style={{ height: '300px', objectFit: 'cover' }} // Puedes ajustar el estilo según lo necesario
+                      src="/storage/images/defecto.jpg" 
+                      alt="Imagen por defecto"
+                      style={{ height: '300px', objectFit: 'cover' }} 
                     />
                   </Carousel.Item>
-                ))
-              ) : (
-                <Carousel.Item>
-                  <img
-                    className="d-block w-100"
-                    src="/storage/images/defecto.jpg" // Cambia esta ruta a una imagen por defecto
-                    alt="Imagen por defecto"
-                    style={{ height: '300px', objectFit: 'cover' }} // Ajusta el estilo de la imagen por defecto
-                  />
-                </Carousel.Item>
-              )}
-            </Carousel>
-            <CardContent>
-              <Typography variant="body1" color="text.primary">
-                Categoría: {campaign.category?.name}
-              </Typography>
-              <Typography gutterBottom variant="h4" component="div" align="center">
-                {campaign.title}
-              </Typography>
-              <Typography variant="body1" color="text.secondary" align="justify" sx={{ marginBottom: 2 }}>
-                {campaign.description}
-              </Typography>
-              <CampaignVideo youtubeId={youtubeId} />
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-                <Typography variant="body1" color="text.primary">
-                  <strong>Meta:</strong> ${campaign.goal}
+                )}
+              </Carousel>
+              <CardContent>
+                 <Typography variant="body1" color="text.primary">
+                 Categoria: {campaign.category?.name}
+          </Typography>
+                <Typography gutterBottom variant="h4" component="div" align="center">
+                  {campaign.title}
                 </Typography>
-                <Typography variant="body1" color="text.secondary">
-                  <strong>Fecha de comienzo:</strong> {new Date(campaign.start_date).toLocaleDateString('es-ES')} <br />
-                  <strong>Fecha de finalización:</strong> {new Date(campaign.end_date).toLocaleDateString('es-ES')}
+                <Typography variant="body1" color="text.secondary" align="justify" sx={{ marginBottom: 2 }}>
+                  {campaign.description}
                 </Typography>
-              </Box>
+                <CampaignVideo youtubeId={youtubeId}/>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                  <Typography variant="body1" color="text.primary">
+                    <strong>Meta:</strong> ${campaign.goal}
+                  </Typography>
+                  <Typography variant="body1" color="text.secondary">
+                    <strong>Fecha de comienzo:</strong> {new Date(campaign.start_date).toLocaleDateString('es-ES')} <br />
+                    <strong>Fecha de finalización:</strong> {new Date(campaign.end_date).toLocaleDateString('es-ES')}
+                  </Typography>
+                </Box>
 
-              {/* Input para el monto en USD */}
-              <Box sx={{ mb: 2 }}>
-                <TextField
-                  label="Monto a donar en USD"
-                  variant="outlined"
-                  fullWidth
-                  value={donationAmount}
-                  onChange={(e) => setDonationAmount(e.target.value)}
-                  placeholder="Si desea donar dólares, por favor haga la conversión"
-                />
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={convertToARS}
-                  sx={{ mt: 2 }}
-                >
-                  Convertir a pesos (ARS)
-                </Button>
-              </Box>
+                {/* Input para el monto en dólares */}
+            <Box sx={{ mb: 2 }}>
+              <TextField
+              label="Monto en dólares"
+              variant="outlined"
+              fullWidth
+              value={donationAmountUSD}
+              onChange={(e) => setDonationAmountUSD(e.target.value)}
+              placeholder="Ingresa el monto en dólares"
+              />
+            </Box>
 
-              {/* Input para el monto de donación en ARS */}
-              <Box sx={{ mb: 2 }}>
-                <TextField
-                  label="Monto a donar"
-                  variant="outlined"
-                  fullWidth
-                  value={donationAmountARS}
-                  placeholder="Monto convertido a ARS"
-                  InputProps={{
-                    readOnly: true, // Hacemos que este campo sea solo lectura
-                  }}
-                />
-              </Box>
-
-              {/* Botón para realizar la donación */}
               <Button
                 variant="contained"
                 color="primary"
-                fullWidth
-                onClick={handleDonation}
-                disabled={!donationAmountARS || isNaN(donationAmountARS)}
+                onClick={handleConvertToPesos}
+                sx={{ mb: 2 }}
               >
-                Donar a esta campaña
+                Convertir a pesos
               </Button>
 
-              {error && <p style={{ color: 'red' }}>{error}</p>}
-            </CardContent>
-          </Card>
-        </Box>
-      </AuthenticatedLayout>
-    ) : (
-      <div className="text-center mt-5">
-        <h2>Sesión expirada</h2>
-        <p>Por favor, inicia sesión nuevamente.</p>
-      </div>
-    )}
-  </div>
-);
+              {/* Input para el monto en pesos, que puede ser ingresado directamente o provenir de la conversión */}
+            <Box sx={{ mb: 2 }}>
+              <TextField
+                label="Monto a donar"
+                variant="outlined"
+                fullWidth
+                value={donationAmount}
+                onChange={(e) => setDonationAmount(e.target.value)}
+                placeholder="Ingresa el monto a donar en pesos"
+              />
+            </Box>
+
+                {/* Botón para realizar la donación */}
+                <Button
+                  variant="contained"
+                  color="primary"
+                  fullWidth
+                  onClick={handleDonation}
+                  disabled={!donationAmount || isNaN(donationAmount)}
+                >
+                  Donar a esta campaña
+                </Button>
+
+                {error && <p style={{ color: 'red' }}>{error}</p>}
+              </CardContent>
+            </Card>
+          </Box>
+        </AuthenticatedLayout>
+      ) : (
+        <div className="text-center mt-5">
+          <h2>Sesión expirada</h2>
+          <p>Por favor, inicia sesión nuevamente.</p>
+        </div>
+      )}
+    </div>
+  );
 };
 
 export default CampaignDetails;
+
+
