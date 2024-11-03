@@ -252,6 +252,30 @@ class CampaignController extends Controller
         return response()->json($campaigns);
     }
 
+
+    public function convertToPesos(Request $request)
+    {
+        $amount = $request->input('amount');
+    
+        // Llamada al servicio SOAP y conversión de la cantidad en dólares
+        try {
+            // Configuración sin WSDL
+            $options = [
+                'location' => "http://localhost:8001/CurrencyConverterService.php",
+                'uri' => "http://localhost:8001/soap_service",
+            ];
+            $client = new \SoapClient(null, $options);
+
+            $result = $client->convertToPesos($amount);
+    
+            return response()->json(['pesos' => $result]); // Cambia 'convertedAmount' a 'pesos'
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    /*
+   
     public function convertToPesos(Request $request)
 {
     $amount = $request->input('amount'); // Monto en dólares desde el frontend
@@ -271,5 +295,5 @@ class CampaignController extends Controller
     } catch (\Exception $e) {
         return response()->json(['error' => 'Error en la conversión: ' . $e->getMessage()], 500);
     }
-}
+}*/
 }

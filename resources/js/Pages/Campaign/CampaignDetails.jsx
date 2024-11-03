@@ -82,7 +82,7 @@ const handleConvertToPesos = () => {
 
   axios.post('/convert-to-pesos', { amount: donationAmountUSD })
       .then(response => {
-          setDonationAmount(response.data.pesos); // Asigna el resultado en pesos al campo de donación
+          setDonationAmount(response.data.pesos); // Ahora coincide con la respuesta del backend
           setError(null);
       })
       .catch(error => {
